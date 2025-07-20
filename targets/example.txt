@@ -1,0 +1,24 @@
+# Example targets file
+# Add your target URLs/domains here, one per line
+
+# Examples:
+# https://example.com
+# https://api.example.com  
+# example-k8s-cluster.com
+# ec2-instance.amazonaws.com
+
+# Cloud instances
+# https://metadata-service.gcp.com
+# https://azure-vm.cloudapp.azure.com
+
+# Web applications
+# https://webapp.example.com
+# https://dev.example.com
+# https://staging.example.com
+
+# Instructions:
+# 1. Add one target per line
+# 2. Include protocol (http:// or https://)
+# 3. Can be domain names or IP addresses
+# 4. Comments start with #
+# 5. Empty lines are ignored

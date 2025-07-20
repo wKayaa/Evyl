@@ -1,0 +1,84 @@
+scanner:
+  threads: 100
+  timeout: 10
+  retry_attempts: 3
+  user_agent_rotation: true
+  proxy_rotation: true
+  request_delay: 0.1
+  max_redirects: 3
+
+validation:
+  enabled: true
+  cache_duration: 86400
+  confidence_threshold: 0.8
+  parallel_validations: 10
+  timeout: 30
+
+output:
+  formats: ["json", "html", "txt"]
+  encrypt_results: false
+  real_time_alerts: true
+  compress_reports: true
+  include_screenshots: false
+
+network:
+  user_agent_rotation: true
+  proxy_rotation: false
+  rate_limiting: true
+  connection_pooling: true
+  ssl_verification: false
+  follow_redirects: true
+
+modules:
+  kubernetes:
+    enabled: true
+    service_account_paths: ["/var/run/secrets/kubernetes.io/serviceaccount/"]
+    api_endpoints: true
+    kubelet_scan: true
+    etcd_scan: true
+  
+  aws:
+    enabled: true
+    metadata_endpoints: true
+    imdsv1_check: true
+    imdsv2_check: true
+    credential_validation: true
+  
+  gcp:
+    enabled: true
+    metadata_endpoints: true
+    service_account_enumeration: true
+    token_extraction: true
+  
+  azure:
+    enabled: true
+    metadata_endpoints: true
+    managed_identity_check: true
+    token_extraction: true
+  
+  web:
+    enabled: true
+    git_scanning: true
+    config_scanning: true
+    js_analysis: true
+    backup_scanning: true
+
+logging:
+  level: "INFO"
+  colored_output: true
+  file_logging: false
+  log_file: "logs/evyl.log"
+  verbose_errors: false
+
+security:
+  memory_wiping: true
+  secure_deletion: true
+  credential_obfuscation: true
+  anti_forensics: false
+
+performance:
+  cache_enabled: true
+  cache_size: 1000
+  memory_limit: "512MB"
+  disk_usage_limit: "1GB"
+  cpu_limit: 100

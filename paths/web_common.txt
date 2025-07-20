@@ -1,0 +1,381 @@
+# Environment Files - 200+ variations
+/.env
+/.env.local
+/.env.development
+/.env.production
+/.env.staging
+/.env.test
+/.env.backup
+/.env.example
+/.env.sample
+/.env.template
+/.env.orig
+/.env.save
+/.env.old
+/.env.bak
+/.env.dev
+/.env.prod
+/.env.stage
+/.env.testing
+/.environment
+/env
+/environment
+/.config
+/config
+/config.json
+/config.xml
+/config.yaml
+/config.yml
+/config.ini
+/config.php
+/config.js
+/config.py
+/config.rb
+/configuration.xml
+/app.config
+/web.config
+/settings.json
+/settings.xml
+/settings.yaml
+/settings.yml
+/settings.ini
+/settings.php
+/appsettings.json
+/application.properties
+/database.yml
+/secrets.json
+/secrets.yaml
+
+# Git Exposure
+/.git
+/.git/config
+/.git/HEAD
+/.git/index
+/.git/packed-refs
+/.git/refs/heads/master
+/.git/refs/heads/main
+/.git/logs/HEAD
+/.git/logs/refs/heads/master
+/.git/objects/
+/.gitignore
+/.gitconfig
+
+# CI/CD and Docker
+/Dockerfile
+/docker-compose.yml
+/docker-compose.yaml
+/.dockerignore
+/.gitlab-ci.yml
+/.github/workflows/
+/Jenkinsfile
+/.travis.yml
+/buildspec.yml
+/azure-pipelines.yml
+
+# Package Managers
+/package.json
+/package-lock.json
+/yarn.lock
+/composer.json
+/composer.lock
+/requirements.txt
+/Pipfile
+/Pipfile.lock
+/Gemfile
+/Gemfile.lock
+/pom.xml
+/build.gradle
+/go.mod
+/go.sum
+
+# Application Specific
+/wp-config.php
+/wp-config-sample.php
+/wp-config.bak
+/laravel/.env
+/app/.env
+/application/.env
+/sites/default/settings.php
+/includes/config.inc.php
+/inc/config.inc.php
+/config/database.php
+/config/app.php
+
+# Logs and Backups
+/logs/
+/log/
+/error.log
+/access.log
+/backup/
+/backups/
+/backup.sql
+/backup.zip
+/database.sql
+
+# Admin and Debug
+/admin/
+/administrator/
+/wp-admin/
+/phpmyadmin/
+/phpinfo.php
+/info.php
+/test.php
+/debug.php
+
+# API and Documentation
+/api/
+/api/v1/
+/api/v2/
+/swagger/
+/swagger.json
+/swagger.yaml
+/api-docs/
+/openapi.json
+
+# Common Files
+/robots.txt
+/sitemap.xml
+/crossdomain.xml
+/favicon.ico
+/.well-known/
+/.well-known/security.txt
+
+# Framework Specific
+/vendor/
+/node_modules/
+/assets/
+/static/
+/public/
+/storage/
+/upload/
+/uploads/
+
+# Security Files
+/.htaccess
+/.htpasswd
+/security.txt
+/clientaccesspolicy.xml
+
+# Server Status and Info
+/server-status
+/server-info
+/nginx_status
+/status
+/health
+/metrics
+
+# Common CMS and Framework Paths
+/administrator/index.php
+/wp-login.php
+/admin/login.php
+/login.php
+/admin.php
+/dashboard/
+/panel/
+/control/
+/manage/
+
+# Database Dumps
+/dump.sql
+/mysqldump.sql
+/pg_dump.sql
+/database.sql.gz
+/backup.sql.bz2
+
+# SSH and Keys
+/.ssh/
+/.ssh/id_rsa
+/.ssh/id_dsa
+/.ssh/authorized_keys
+/.ssh/known_hosts
+
+# Temporary and Cache
+/tmp/
+/temp/
+/cache/
+/.cache/
+/var/cache/
+/var/tmp/
+
+# Error Pages
+/404.html
+/500.html
+/error.html
+/maintenance.html
+
+# Development
+/test/
+/tests/
+/dev/
+/development/
+/staging/
+/qa/
+
+# Monitoring and Stats
+/stats/
+/statistics/
+/analytics/
+/monitoring/
+
+# Mobile Apps
+/app/
+/mobile/
+/ios/
+/android/
+
+# Mail and Communication
+/mail/
+/webmail/
+/email/
+/messages/
+
+# E-commerce
+/shop/
+/store/
+/cart/
+/checkout/
+/payment/
+
+# Media and Files
+/images/
+/img/
+/pics/
+/pictures/
+/files/
+/documents/
+/downloads/
+/media/
+/assets/
+/resources/
+
+# Installation and Setup
+/install/
+/setup/
+/installation/
+/installer/
+/upgrade/
+/migration/
+
+# Help and Support
+/help/
+/support/
+/docs/
+/documentation/
+/manual/
+/faq/
+
+# User Content
+/user/
+/users/
+/profile/
+/profiles/
+/account/
+
+# Search and Index
+/search/
+/find/
+/index/
+/sitemap/
+
+# Comments and Forums
+/comments/
+/forum/
+/forums/
+/board/
+/discussion/
+
+# News and Blog
+/news/
+/blog/
+/posts/
+/articles/
+/content/
+
+# Language and Localization
+/lang/
+/language/
+/locale/
+/i18n/
+/l10n/
+
+# Plugins and Modules
+/plugins/
+/modules/
+/addons/
+/extensions/
+/components/
+
+# Themes and Templates
+/themes/
+/templates/
+/skins/
+/layouts/
+
+# External Services
+/external/
+/third-party/
+/vendor/
+/lib/
+/library/
+
+# RSS and Feeds
+/rss/
+/feed/
+/feeds/
+/atom/
+/xml/
+
+# Social Media
+/social/
+/share/
+/facebook/
+/twitter/
+/linkedin/
+
+# Reports and Analytics
+/reports/
+/report/
+/analytics/
+/stats/
+/statistics/
+
+# Backups with dates
+/backup_2024/
+/backup_2023/
+/backup_01_01_2024/
+/db_backup_2024/
+
+# Configuration with prefixes
+/app_config/
+/site_config/
+/db_config/
+/mail_config/
+/cache_config/
+
+# Different environment variations
+/.env.development.local
+/.env.production.local
+/.env.staging.local
+/.env.test.local
+
+# More specific paths
+/wp-content/
+/wp-includes/
+/wp-admin/
+/cgi-bin/
+/fcgi-bin/
+/perl/
+/python/
+
+# Version control
+/.svn/
+/.hg/
+/.bzr/
+/CVS/
+
+# IDE and Editor files
+/.vscode/
+/.idea/
+/.project
+/.settings/
+/nbproject/
