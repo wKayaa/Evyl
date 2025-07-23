@@ -16,20 +16,34 @@ from utils.logger import Logger
 from utils.crypto import CryptoManager
 
 class Reporter:
-    """Comprehensive report generator"""
+    """Comprehensive report generator - config-driven"""
     
-    def __init__(self, output_dir: str = "results"):
+    def __init__(self, output_dir: str = "results", config: Dict[str, Any] = None):
         self.output_dir = Path(output_dir)
+        self.config = config or {}
         self.logger = Logger()
-        self.crypto = CryptoManager()
+        
+        # Setup logging to file if configured
+        log_file = self.config.get('log_file')
+        if log_file:
+            self.logger.add_file_handler(log_file)
+        
+        try:
+            from utils.crypto import CryptoManager
+            self.crypto = CryptoManager()
+        except ImportError:
+            self.crypto = None
+            self.logger.warning("Crypto manager not available, encryption disabled")
         
         # Ensure output directory exists
         self.output_dir.mkdir(parents=True, exist_ok=True)
+        
+        self.logger.info(f"Reporter initialized: output to {self.output_dir}")
     
     async def generate_reports(self, scan_results, formats: List[str] = None):
         """Generate reports in specified formats"""
         if formats is None:
-            formats = ['json']
+            formats = self.config.get('formats', ['json'])
         
         scan_id = str(uuid.uuid4())
         timestamp = datetime.now().isoformat()
@@ -46,7 +60,35 @@ class Reporter:
             elif format_type == 'txt':
                 await self._generate_txt_report(report_data, scan_id)
         
+        # Real-time logging if enabled
+        if self.config.get('real_time_logging', True):
+            self._log_findings_real_time(scan_results)
+        
         self.logger.success(f"Reports generated in {self.output_dir}")
+    
+    def _log_findings_real_time(self, scan_results):
+        """Log findings to console and file in real-time"""
+        if not scan_results.credentials:
+            return
+        
+        self.logger.section("🔑 Credentials Found")
+        
+        # Group by type
+        by_type = {}
+        for cred in scan_results.credentials:
+            cred_type = cred.get('type', 'unknown')
+            if cred_type not in by_type:
+                by_type[cred_type] = []
+            by_type[cred_type].append(cred)
+        
+        # Log each type
+        for cred_type, creds in by_type.items():
+            self.logger.info(f"🎯 {cred_type.upper()}: {len(creds)} found")
+            for cred in creds[:5]:  # Show first 5 of each type
+                self.logger.info(f"  📍 {cred.get('url', 'N/A')}")
+            
+            if len(creds) > 5:
+                self.logger.info(f"  ... and {len(creds) - 5} more")
     
     def _prepare_report_data(self, scan_results, scan_id: str, timestamp: str) -> Dict[str, Any]:
         """Prepare comprehensive report data"""

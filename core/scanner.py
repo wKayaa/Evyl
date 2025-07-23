@@ -48,11 +48,12 @@ class ScanStats:
     validation_results: List[Dict[str, Any]] = field(default_factory=list)
 
 class Scanner:
-    """Multi-threaded scanner with advanced capabilities"""
+    """Multi-threaded scanner with advanced capabilities - optimized for VPS deployment"""
     
-    def __init__(self, threads: int = 50, timeout: int = 10, network_manager=None):
+    def __init__(self, threads: int = 200, timeout: int = 8, network_manager=None, config: Dict[str, Any] = None):
         self.threads = threads
         self.timeout = timeout
+        self.config = config or {}
         self.logger = Logger()
         self.network_manager = network_manager or NetworkManager()
         
@@ -61,6 +62,11 @@ class Scanner:
         self.results: List[ScanResult] = []
         self.stats = ScanStats()
         
+        # Performance optimizations from config
+        self.batch_size = self.config.get('batch_size', 1000)
+        self.memory_efficient = self.config.get('memory_efficient', True)
+        self.request_delay = self.config.get('request_delay', 0.05)
+        
         # Path lists
         self.load_paths()
         
@@ -68,6 +74,8 @@ class Scanner:
         self.ssl_context = ssl.create_default_context()
         self.ssl_context.check_hostname = False
         self.ssl_context.verify_mode = ssl.CERT_NONE
+        
+        self.logger.info(f"Scanner initialized: {threads} threads, {timeout}s timeout, batch size: {self.batch_size}")
     
     def load_paths(self):
         """Load scanning paths from files"""
@@ -81,6 +89,9 @@ class Scanner:
         for category, endpoints in ENDPOINTS.items():
             if category not in self.paths or not self.paths[category]:
                 self.paths[category] = endpoints
+        
+        total_paths = sum(len(paths) for paths in self.paths.values())
+        self.logger.info(f"Loaded {total_paths} scanning paths across {len(self.paths)} categories")
     
     def _load_path_file(self, filename: str) -> List[str]:
         """Load paths from a file"""
@@ -92,26 +103,74 @@ class Scanner:
             return []
     
     async def scan_targets(self, targets: List[str], progress_display=None) -> ScanStats:
-        """Scan multiple targets concurrently"""
+        """Scan multiple targets concurrently - optimized for large lists"""
         self.logger.info(f"Starting scan of {len(targets)} targets with {self.threads} threads")
         
         # Generate all URLs to scan
         urls_to_scan = self._generate_urls(targets)
         self.stats.unique_urls = len(urls_to_scan)
         
+        self.logger.info(f"Generated {len(urls_to_scan)} URLs to scan")
+        
+        # Update progress display with filename if available
+        if progress_display and hasattr(progress_display, 'update_filename'):
+            target_file = getattr(progress_display, 'current_file', 'targets')
+            progress_display.update_filename(target_file)
+        
+        # Process URLs in batches for memory efficiency
+        if self.memory_efficient and len(urls_to_scan) > self.batch_size:
+            await self._scan_in_batches(urls_to_scan, progress_display)
+        else:
+            await self._scan_all_urls(urls_to_scan, progress_display)
+        
+        # Calculate final statistics
+        self._calculate_final_stats()
+        
+        self.logger.info(f"Scan completed: {self.stats.total_processed} URLs processed, "
+                        f"{len(self.stats.credentials)} credentials found")
+        
+        return self.stats
+    
+    async def _scan_in_batches(self, urls: List[str], progress_display=None):
+        """Scan URLs in batches to manage memory usage"""
+        total_batches = (len(urls) + self.batch_size - 1) // self.batch_size
+        
+        for batch_num in range(total_batches):
+            start_idx = batch_num * self.batch_size
+            end_idx = min(start_idx + self.batch_size, len(urls))
+            batch_urls = urls[start_idx:end_idx]
+            
+            self.logger.info(f"Processing batch {batch_num + 1}/{total_batches} ({len(batch_urls)} URLs)")
+            
+            await self._scan_all_urls(batch_urls, progress_display)
+            
+            # Small delay between batches to prevent overwhelming
+            if batch_num < total_batches - 1:
+                await asyncio.sleep(0.5)
+    
+    async def _scan_all_urls(self, urls_to_scan: List[str], progress_display=None):
+        """Scan all URLs in the list"""
         # Create semaphore to limit concurrent requests
         semaphore = asyncio.Semaphore(self.threads)
         
-        # Create async session
+        # Create async session with optimized settings
         connector = aiohttp.TCPConnector(
             ssl=self.ssl_context,
-            limit=self.threads * 2,
-            limit_per_host=10
+            limit=self.threads * 3,  # Increased connection pool
+            limit_per_host=20,       # Higher per-host limit
+            ttl_dns_cache=300,       # DNS caching
+            use_dns_cache=True
+        )
+        
+        timeout = aiohttp.ClientTimeout(
+            total=self.timeout,
+            connect=5,  # Separate connect timeout
+            sock_read=self.timeout
         )
         
         async with aiohttp.ClientSession(
             connector=connector,
-            timeout=aiohttp.ClientTimeout(total=self.timeout)
+            timeout=timeout
         ) as session:
             # Create tasks for all URLs
             tasks = [
@@ -120,32 +179,38 @@ class Scanner:
             ]
             
             # Process tasks as they complete
+            completed_count = 0
             for task in asyncio.as_completed(tasks):
                 try:
                     result = await task
                     if result:
                         self.results.append(result)
                         self._extract_credentials(result)
-                        self.stats.total_processed += 1
                         
-                        # Update progress
-                        if progress_display:
-                            progress_display.update_stats(self.stats)
-                            
+                        # Log credentials immediately for real-time monitoring
+                        if result.credentials:
+                            for cred in result.credentials:
+                                self.logger.credential_found(cred['type'], result.url)
+                    
+                    completed_count += 1
+                    self.stats.total_processed = completed_count
+                    
+                    # Update progress more frequently for better feedback
+                    if progress_display and completed_count % 10 == 0:
+                        progress_display.update_stats(self.stats)
+                        
                 except Exception as e:
-                    self.logger.error(f"Task failed: {e}")
-        
-        # Calculate final statistics
-        self._calculate_final_stats()
-        return self.stats
+                    self.logger.debug(f"Task failed: {e}")
+                    completed_count += 1
     
     async def _scan_url_async(self, session: aiohttp.ClientSession, semaphore: asyncio.Semaphore, 
                              url: str, progress_display=None) -> Optional[ScanResult]:
-        """Scan a single URL asynchronously"""
+        """Scan a single URL asynchronously - optimized for performance"""
         async with semaphore:
             try:
-                # Random delay for evasion
-                await asyncio.sleep(random.uniform(0.1, 0.5))
+                # Small delay for rate limiting
+                if self.request_delay > 0:
+                    await asyncio.sleep(self.request_delay)
                 
                 start_time = time.time()
                 
@@ -153,33 +218,48 @@ class Scanner:
                 headers = self.network_manager.get_headers()
                 proxy = self.network_manager.get_proxy()
                 
-                # Make request
-                async with session.get(
-                    url,
-                    headers=headers,
-                    proxy=proxy,
-                    allow_redirects=True,
-                    max_redirects=3
-                ) as response:
-                    content = await response.text()
-                    response_time = time.time() - start_time
-                    
-                    result = ScanResult(
-                        url=url,
-                        status_code=response.status,
-                        content=content,
-                        headers=dict(response.headers),
-                        response_time=response_time
-                    )
-                    
-                    self.logger.debug(f"Scanned {url} - Status: {response.status}")
-                    return result
+                # Make request with improved error handling
+                try:
+                    async with session.get(
+                        url,
+                        headers=headers,
+                        proxy=proxy,
+                        allow_redirects=True,
+                        max_redirects=2  # Reduced for performance
+                    ) as response:
+                        # Only read content for successful responses or specific error codes
+                        if response.status in [200, 401, 403, 500]:
+                            content = await response.text(errors='ignore')
+                        else:
+                            content = ""
+                        
+                        response_time = time.time() - start_time
+                        
+                        result = ScanResult(
+                            url=url,
+                            status_code=response.status,
+                            content=content,
+                            headers=dict(response.headers),
+                            response_time=response_time
+                        )
+                        
+                        # Only log successful requests and errors in verbose mode
+                        if response.status == 200:
+                            self.logger.debug(f"✅ {url} - {response.status}")
+                        elif response.status >= 400:
+                            self.logger.debug(f"⚠️  {url} - {response.status}")
+                        
+                        return result
+                        
+                except aiohttp.ClientError as e:
+                    self.logger.debug(f"Client error for {url}: {e}")
+                    return None
                     
             except asyncio.TimeoutError:
-                self.logger.warning(f"Timeout scanning {url}")
+                self.logger.debug(f"⏰ Timeout: {url}")
                 return None
             except Exception as e:
-                self.logger.warning(f"Error scanning {url}: {e}")
+                self.logger.debug(f"❌ Error scanning {url}: {e}")
                 return None
     
     def _generate_urls(self, targets: List[str]) -> List[str]:

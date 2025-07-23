@@ -1,84 +1,84 @@
+# Evyl Framework Configuration
+# Optimized for VPS deployment with large target lists
+
+# Core scanning configuration
 scanner:
-  threads: 100
-  timeout: 10
-  retry_attempts: 3
+  threads: 200              # High concurrency for VPS
+  timeout: 8                # Optimized timeout
+  retry_attempts: 2         # Reduced retries for speed
   user_agent_rotation: true
-  proxy_rotation: true
-  request_delay: 0.1
-  max_redirects: 3
+  proxy_rotation: false     # Disabled for better performance
+  request_delay: 0.05       # Minimal delay for speed
+  max_redirects: 2          # Reduced redirects
+  batch_size: 1000          # Process URLs in batches
+  memory_efficient: true    # Enable memory optimization
 
+# Input file processing
+input:
+  scan_every_line: true     # Ensure every line is scanned
+  ignore_duplicates: true   # Skip duplicate targets
+  chunk_size: 10000         # Process large files in chunks
+  max_file_size: "1GB"      # Maximum target file size
+
+# Validation settings
 validation:
-  enabled: true
-  cache_duration: 86400
-  confidence_threshold: 0.8
-  parallel_validations: 10
-  timeout: 30
+  enabled: false            # Disable by default for speed
+  parallel_validations: 5   # Reduced for performance
+  timeout: 15               # Faster validation timeout
 
+# Output configuration
 output:
-  formats: ["json", "html", "txt"]
-  encrypt_results: false
-  real_time_alerts: true
-  compress_reports: true
-  include_screenshots: false
+  formats: ["json"]         # Simplified output
+  log_file: "evyl_scan.log" # Always log to file
+  real_time_logging: true   # Log results immediately
+  compress_results: true
+  include_raw_responses: false
 
+# Network optimization
 network:
-  user_agent_rotation: true
-  proxy_rotation: false
-  rate_limiting: true
   connection_pooling: true
+  pool_size: 300            # Large connection pool
   ssl_verification: false
   follow_redirects: true
+  rate_limiting: false      # Disabled for VPS performance
 
+# Module configuration (all enabled by default)
 modules:
   kubernetes:
     enabled: true
-    service_account_paths: ["/var/run/secrets/kubernetes.io/serviceaccount/"]
-    api_endpoints: true
-    kubelet_scan: true
-    etcd_scan: true
-  
+    deep_scan: true
   aws:
     enabled: true
-    metadata_endpoints: true
-    imdsv1_check: true
-    imdsv2_check: true
-    credential_validation: true
-  
+    metadata_scan: true
   gcp:
     enabled: true
-    metadata_endpoints: true
-    service_account_enumeration: true
-    token_extraction: true
-  
+    metadata_scan: true
   azure:
     enabled: true
-    metadata_endpoints: true
-    managed_identity_check: true
-    token_extraction: true
-  
+    metadata_scan: true
   web:
     enabled: true
-    git_scanning: true
-    config_scanning: true
-    js_analysis: true
-    backup_scanning: true
+    comprehensive_scan: true
 
+# Logging configuration
 logging:
   level: "INFO"
-  colored_output: true
-  file_logging: false
+  file_logging: true
   log_file: "logs/evyl.log"
-  verbose_errors: false
+  colored_output: true
+  verbose_errors: true
+  performance_stats: true
 
-security:
-  memory_wiping: true
-  secure_deletion: true
-  credential_obfuscation: true
-  anti_forensics: false
-
+# Performance optimization for VPS
 performance:
+  cpu_optimization: true
+  memory_limit: "2GB"
   cache_enabled: true
-  cache_size: 1000
-  memory_limit: "512MB"
-  disk_usage_limit: "1GB"
-  cpu_limit: 100
+  cache_size: 5000
+  async_optimization: true
+  
+# Security settings
+security:
+  memory_wiping: false      # Disabled for performance
+  credential_obfuscation: true
+  secure_logging: true
