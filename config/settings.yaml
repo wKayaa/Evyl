@@ -1,6 +1,6 @@
 scanner:
-  threads: 100
-  timeout: 10
+  threads: unlimited
+  timeout: unlimited
   retry_attempts: 3
   user_agent_rotation: true
   proxy_rotation: true
@@ -62,6 +62,17 @@ modules:
     config_scanning: true
     js_analysis: true
     backup_scanning: true
+    path_scanning: true
+
+scanners:
+  path_scanner: true
+  js_scanner: true  
+  git_scanner: true
+
+validators:
+  crack_aws: true
+  crack_api: true
+  crack_smtp: true
 
 logging:
   level: "INFO"
@@ -78,7 +89,7 @@ security:
 
 performance:
   cache_enabled: true
-  cache_size: 1000
-  memory_limit: "512MB"
-  disk_usage_limit: "1GB"
-  cpu_limit: 100
+  cache_size: unlimited
+  memory_limit: unlimited
+  disk_usage_limit: unlimited
+  cpu_limit: unlimited

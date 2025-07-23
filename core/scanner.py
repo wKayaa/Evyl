@@ -50,9 +50,18 @@ class ScanStats:
 class Scanner:
     """Multi-threaded scanner with advanced capabilities"""
     
-    def __init__(self, threads: int = 50, timeout: int = 10, network_manager=None):
-        self.threads = threads
-        self.timeout = timeout
+    def __init__(self, threads: int = 1000, timeout: int = None, network_manager=None):
+        # Handle unlimited values
+        if threads is None or threads == 0:
+            self.threads = 1000  # High default for unlimited
+        else:
+            self.threads = threads
+            
+        if timeout is None or timeout == 0:
+            self.timeout = None  # No timeout
+        else:
+            self.timeout = timeout
+            
         self.logger = Logger()
         self.network_manager = network_manager or NetworkManager()
         
@@ -106,12 +115,18 @@ class Scanner:
         connector = aiohttp.TCPConnector(
             ssl=self.ssl_context,
             limit=self.threads * 2,
-            limit_per_host=10
+            limit_per_host=min(50, self.threads)  # Prevent too many connections per host
         )
+        
+        # Set timeout for session
+        if self.timeout is not None:
+            session_timeout = aiohttp.ClientTimeout(total=self.timeout)
+        else:
+            session_timeout = aiohttp.ClientTimeout(total=None)  # No timeout
         
         async with aiohttp.ClientSession(
             connector=connector,
-            timeout=aiohttp.ClientTimeout(total=self.timeout)
+            timeout=session_timeout
         ) as session:
             # Create tasks for all URLs
             tasks = [
