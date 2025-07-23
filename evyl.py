@@ -161,9 +161,10 @@ def parse_arguments():
         epilog="""
 Examples:
   %(prog)s -f targets.txt -o results/
-  %(prog)s -t https://example.com -t https://test.com --validate
-  %(prog)s -f domains.txt --threads 100 --timeout 10
-  %(prog)s --kubernetes --aws --gcp
+  %(prog)s -t https://example.com -t https://test.com
+  %(prog)s -f domains.txt --threads unlimited --timeout unlimited
+  %(prog)s -f targets.txt --all-modules --validate --crack-aws --crack-api --crack-smtp
+  %(prog)s -t example.com --path-scanner --js-scanner --git-scanner
         """
     )
     
