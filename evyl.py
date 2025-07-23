@@ -47,15 +47,31 @@ class EvylFramework:
         self.args = args
         self.logger = Logger(verbose=args.verbose)
         self.network_manager = NetworkManager()
+        
+        # Handle unlimited values
+        threads = self._parse_unlimited_value(args.threads, default_unlimited=1000)
+        timeout = self._parse_unlimited_value(args.timeout, default_unlimited=None)
+        
         self.scanner = Scanner(
-            threads=args.threads,
-            timeout=args.timeout,
+            threads=threads,
+            timeout=timeout,
             network_manager=self.network_manager
         )
         self.exploiter = Exploiter(self.scanner)
         self.validator = Validator() if args.validate else None
         self.reporter = Reporter(args.output_dir)
         self.progress = ProgressDisplay()
+        
+    def _parse_unlimited_value(self, value, default_unlimited=None):
+        """Parse unlimited values from arguments"""
+        if isinstance(value, str) and value.lower() in ['unlimited', 'inf', 'infinite']:
+            return default_unlimited
+        elif isinstance(value, str) and value.isdigit():
+            return int(value)
+        elif isinstance(value, int):
+            return value
+        else:
+            return default_unlimited
         
     def banner(self):
         """Display the framework banner"""
@@ -145,9 +161,10 @@ def parse_arguments():
         epilog="""
 Examples:
   %(prog)s -f targets.txt -o results/
-  %(prog)s -t https://example.com -t https://test.com --validate
-  %(prog)s -f domains.txt --threads 100 --timeout 10
-  %(prog)s --kubernetes --aws --gcp
+  %(prog)s -t https://example.com -t https://test.com
+  %(prog)s -f domains.txt --threads unlimited --timeout unlimited
+  %(prog)s -f targets.txt --all-modules --validate --crack-aws --crack-api --crack-smtp
+  %(prog)s -t example.com --path-scanner --js-scanner --git-scanner
         """
     )
     
@@ -160,10 +177,10 @@ Examples:
     
     # Scanning options
     scan_group = parser.add_argument_group('Scanning Options')
-    scan_group.add_argument('--threads', type=int, default=50,
-                           help='Number of threads (default: 50)')
-    scan_group.add_argument('--timeout', type=int, default=10,
-                           help='Request timeout in seconds (default: 10)')
+    scan_group.add_argument('--threads', default='unlimited',
+                           help='Number of threads (default: unlimited, use integer for specific limit)')
+    scan_group.add_argument('--timeout', default='unlimited',
+                           help='Request timeout in seconds (default: unlimited, use integer for specific limit)')
     scan_group.add_argument('--retries', type=int, default=3,
                            help='Number of retries per request (default: 3)')
     scan_group.add_argument('--delay', type=float, default=0,
@@ -171,25 +188,37 @@ Examples:
     
     # Module options
     module_group = parser.add_argument_group('Module Options')
-    module_group.add_argument('--kubernetes', action='store_true',
-                             help='Enable Kubernetes scanning')
-    module_group.add_argument('--aws', action='store_true',
-                             help='Enable AWS scanning')
-    module_group.add_argument('--gcp', action='store_true',
-                             help='Enable GCP scanning')
-    module_group.add_argument('--azure', action='store_true',
-                             help='Enable Azure scanning')
-    module_group.add_argument('--web', action='store_true',
-                             help='Enable web application scanning')
-    module_group.add_argument('--all-modules', action='store_true',
-                             help='Enable all scanning modules')
+    module_group.add_argument('--kubernetes', action='store_true', default=True,
+                             help='Enable Kubernetes scanning (default: enabled)')
+    module_group.add_argument('--aws', action='store_true', default=True,
+                             help='Enable AWS scanning (default: enabled)')
+    module_group.add_argument('--gcp', action='store_true', default=True,
+                             help='Enable GCP scanning (default: enabled)')
+    module_group.add_argument('--azure', action='store_true', default=True,
+                             help='Enable Azure scanning (default: enabled)')
+    module_group.add_argument('--web', action='store_true', default=True,
+                             help='Enable web application scanning (default: enabled)')
+    module_group.add_argument('--all-modules', action='store_true', default=True,
+                             help='Enable all scanning modules (default: enabled)')
+    module_group.add_argument('--path-scanner', action='store_true', default=True,
+                             help='Enable path scanning (default: enabled)')
+    module_group.add_argument('--js-scanner', action='store_true', default=True,
+                             help='Enable JavaScript analysis (default: enabled)')
+    module_group.add_argument('--git-scanner', action='store_true', default=True,
+                             help='Enable Git repository scanning (default: enabled)')
     
     # Validation options
     validation_group = parser.add_argument_group('Validation Options')
-    validation_group.add_argument('--validate', action='store_true',
-                                 help='Validate found credentials')
+    validation_group.add_argument('--validate', action='store_true', default=True,
+                                 help='Validate found credentials (default: enabled)')
     validation_group.add_argument('--validation-timeout', type=int, default=30,
                                  help='Validation timeout in seconds (default: 30)')
+    validation_group.add_argument('--crack-aws', action='store_true', default=True,
+                                 help='Enable AWS credential cracking (default: enabled)')
+    validation_group.add_argument('--crack-api', action='store_true', default=True,
+                                 help='Enable API credential cracking (default: enabled)')
+    validation_group.add_argument('--crack-smtp', action='store_true', default=True,
+                                 help='Enable SMTP credential cracking (default: enabled)')
     
     # Output options
     output_group = parser.add_argument_group('Output Options')
