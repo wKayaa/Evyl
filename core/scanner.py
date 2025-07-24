@@ -48,9 +48,9 @@ class ScanStats:
     validation_results: List[Dict[str, Any]] = field(default_factory=list)
 
 class Scanner:
-    """Multi-threaded scanner with advanced capabilities"""
+    """Multi-threaded scanner with v3.0 optimizations"""
     
-    def __init__(self, threads: int = 1000, timeout: int = None, network_manager=None, telegram_notifier=None):
+    def __init__(self, threads: int = 1000, timeout: int = None, network_manager=None, telegram_notifier=None, performance_mode='normal'):
         # Handle unlimited values
         if threads is None or threads == 0:
             self.threads = 1000  # High default for unlimited
@@ -62,11 +62,15 @@ class Scanner:
         else:
             self.timeout = timeout
             
+        self.performance_mode = performance_mode
         self.logger = Logger()
         self.network_manager = network_manager or NetworkManager()
         self.telegram = telegram_notifier
         
-        # Scanning state
+        # Optimize memory usage based on performance mode
+        self._configure_performance_settings()
+        
+        # Scanning state with memory optimization
         self.processed_urls: Set[str] = set()
         self.results: List[ScanResult] = []
         self.stats = ScanStats()
@@ -78,6 +82,21 @@ class Scanner:
         self.ssl_context = ssl.create_default_context()
         self.ssl_context.check_hostname = False
         self.ssl_context.verify_mode = ssl.CERT_NONE
+    
+    def _configure_performance_settings(self):
+        """Configure performance settings based on mode"""
+        if self.performance_mode == 'low':
+            self.max_results_in_memory = 1000
+            self.batch_size = 50
+            self.connection_pool_size = self.threads
+        elif self.performance_mode == 'high':
+            self.max_results_in_memory = 10000
+            self.batch_size = 500
+            self.connection_pool_size = self.threads * 3
+        else:  # normal
+            self.max_results_in_memory = 5000
+            self.batch_size = 100
+            self.connection_pool_size = self.threads * 2
     
     def load_paths(self):
         """Load scanning paths from files"""
@@ -102,7 +121,7 @@ class Scanner:
             return []
     
     async def scan_targets_with_urls(self, urls_to_scan: List[str], progress_display=None) -> ScanStats:
-        """Scan pre-generated URLs concurrently"""
+        """Scan pre-generated URLs concurrently with v3.0 optimizations"""
         self.logger.info(f"Starting scan of {len(urls_to_scan)} URLs with {self.threads} threads")
         
         # URLs are already generated, just update stats
@@ -115,11 +134,14 @@ class Scanner:
         # Create semaphore to limit concurrent requests
         semaphore = asyncio.Semaphore(self.threads)
         
-        # Create async session
+        # Create async session with v3.0 optimizations
         connector = aiohttp.TCPConnector(
             ssl=self.ssl_context,
-            limit=self.threads * 2,
-            limit_per_host=min(50, self.threads)  # Prevent too many connections per host
+            limit=self.connection_pool_size,
+            limit_per_host=min(50, self.threads),  # Prevent too many connections per host
+            ttl_dns_cache=300,  # Cache DNS for 5 minutes
+            use_dns_cache=True,
+            keepalive_timeout=30
         )
         
         # Set timeout for session
@@ -360,7 +382,73 @@ class Scanner:
         
         return credential
     
-    def _calculate_final_stats(self):
+    async def _process_scan_results_optimized(self, tasks, progress_display):
+        """Process scan results with v3.0 memory and performance optimizations"""
+        processed_count = 0
+        for task in asyncio.as_completed(tasks):
+            try:
+                result = await task
+                # Always increment processed count (regardless of success/failure)
+                self.stats.total_processed += 1
+                processed_count += 1
+                
+                if result:
+                    self.results.append(result)
+                    self._extract_credentials(result)
+                    
+                    # Memory management: clear old results if we have too many
+                    if len(self.results) > self.max_results_in_memory:
+                        # Keep only the most recent results
+                        self.results = self.results[-self.max_results_in_memory//2:]
+                
+                # Update progress periodically for performance
+                if processed_count % self.batch_size == 0 and progress_display:
+                    progress_display.update_stats(self.stats)
+                        
+            except Exception as e:
+                self.stats.total_processed += 1  # Count failed tasks too
+                processed_count += 1
+                if processed_count % self.batch_size == 0 and progress_display:
+                    progress_display.update_stats(self.stats)
+                self.logger.error(f"Task failed: {e}")
+        
+        # Final progress update
+        if progress_display:
+            progress_display.update_stats(self.stats)
+
+    async def _process_scan_results_optimized(self, tasks, progress_display):
+        """Process scan results with v3.0 memory and performance optimizations"""
+        processed_count = 0
+        async for task in asyncio.as_completed(tasks):
+            try:
+                result = await task
+                # Always increment processed count (regardless of success/failure)
+                self.stats.total_processed += 1
+                processed_count += 1
+                
+                if result:
+                    self.results.append(result)
+                    self._extract_credentials(result)
+                    
+                    # Memory management: clear old results if we have too many
+                    if len(self.results) > self.max_results_in_memory:
+                        # Keep only the most recent results
+                        self.results = self.results[-self.max_results_in_memory//2:]
+                
+                # Update progress periodically for performance
+                if processed_count % self.batch_size == 0 and progress_display:
+                    progress_display.update_stats(self.stats)
+                        
+            except Exception as e:
+                self.stats.total_processed += 1  # Count failed tasks too
+                processed_count += 1
+                if processed_count % self.batch_size == 0 and progress_display:
+                    progress_display.update_stats(self.stats)
+                self.logger.error(f"Task failed: {e}")
+        
+        # Final progress update
+        if progress_display:
+            progress_display.update_stats(self.stats)
         """Calculate final scan statistics"""
         if self.stats.unique_urls > 0:
             self.stats.success_rate = (self.stats.total_processed / self.stats.unique_urls) * 100

@@ -95,12 +95,14 @@ class EvylFramework:
         # Handle unlimited values
         threads = self._parse_unlimited_value(getattr(args, 'threads', 'unlimited'), default_unlimited=1000)
         timeout = self._parse_unlimited_value(getattr(args, 'timeout', 'unlimited'), default_unlimited=None)
+        performance_mode = getattr(args, 'performance_mode', 'normal')
         
         self.scanner = Scanner(
             threads=threads,
             timeout=timeout,
             network_manager=self.network_manager,
-            telegram_notifier=self.telegram
+            telegram_notifier=self.telegram,
+            performance_mode=performance_mode
         )
         self.exploiter = Exploiter(self.scanner)
         self.validator = Validator() if getattr(args, 'validate', True) else None
