@@ -31,6 +31,28 @@ PATTERNS = {
     'postmark': r'[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}',
     'sparkpost': r'[a-f0-9]{40}',
     'brevo': r'xkeysib-[a-f0-9]{64}-[a-zA-Z0-9]{16}',
+    'amazon_ses': r'AKIA[0-9A-Z]{16}',
+    'mailchimp': r'[a-f0-9]{32}-us[0-9]{1,2}',
+    'mandrill': r'[a-zA-Z0-9_]{22}',
+    'elastic_email': r'[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}',
+    
+    # SMTP Configuration Patterns
+    'smtp_host': r'(?:SMTP_HOST|MAIL_HOST|MAILER_HOST)\s*[:=]\s*[\'"]?([a-zA-Z0-9.-]+)[\'"]?',
+    'smtp_port': r'(?:SMTP_PORT|MAIL_PORT|MAILER_PORT)\s*[:=]\s*[\'"]?(\d+)[\'"]?',
+    'smtp_username': r'(?:SMTP_USERNAME|SMTP_USER|MAIL_USERNAME|MAIL_USER|MAILER_USERNAME)\s*[:=]\s*[\'"]?([^\'"\s]+)[\'"]?',
+    'smtp_password': r'(?:SMTP_PASSWORD|SMTP_PASS|MAIL_PASSWORD|MAIL_PASS|MAILER_PASSWORD)\s*[:=]\s*[\'"]?([^\'"\s]+)[\'"]?',
+    'smtp_encryption': r'(?:SMTP_ENCRYPTION|MAIL_ENCRYPTION|MAILER_ENCRYPTION)\s*[:=]\s*[\'"]?(tls|ssl|starttls)[\'"]?',
+    
+    # Email Addresses in Configuration
+    'email_config': r'(?:FROM_EMAIL|SENDER_EMAIL|MAIL_FROM|DEFAULT_FROM)\s*[:=]\s*[\'"]?([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})[\'"]?',
+    
+    # Laravel Mail Configuration
+    'laravel_mail_driver': r'MAIL_DRIVER\s*[:=]\s*[\'"]?(smtp|sendmail|mailgun|mandrill|ses|log|array)[\'"]?',
+    'laravel_mail_host': r'MAIL_HOST\s*[:=]\s*[\'"]?([a-zA-Z0-9.-]+)[\'"]?',
+    'laravel_mail_port': r'MAIL_PORT\s*[:=]\s*[\'"]?(\d+)[\'"]?',
+    'laravel_mail_username': r'MAIL_USERNAME\s*[:=]\s*[\'"]?([^\'"\s]+)[\'"]?',
+    'laravel_mail_password': r'MAIL_PASSWORD\s*[:=]\s*[\'"]?([^\'"\s]+)[\'"]?',
+    'laravel_mail_encryption': r'MAIL_ENCRYPTION\s*[:=]\s*[\'"]?(tls|ssl)[\'"]?',
     
     # SMS/Communication Services
     'twilio_account_sid': r'AC[a-f0-9]{32}',

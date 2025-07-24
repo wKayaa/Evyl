@@ -1,8 +1,8 @@
-# 🔥 Evyl Framework v3.0
+# 🔥 Evyl Framework v3.1
 
 <div align="center">
 
-![Evyl Framework](https://img.shields.io/badge/Evyl-Framework%20v3.0-red?style=for-the-badge&logo=security&logoColor=white)
+![Evyl Framework](https://img.shields.io/badge/Evyl-Framework%20v3.1-red?style=for-the-badge&logo=security&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3.8+-blue?style=for-the-badge&logo=python&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
@@ -12,7 +12,13 @@
 
 </div>
 
-## ✨ What's New in v3.0
+## ✨ What's New in v3.1
+
+### 🔐 Enhanced Security Testing Capabilities
+- **Advanced Laravel Scanner**: Complete security assessment for Laravel applications
+- **SMTP Security Testing**: Legitimate email service security validation for authorized testing
+- **Enhanced Email Service Patterns**: Extended support for AWS SES, SMTP configurations
+- **Configuration Exposure Detection**: Advanced Laravel and email configuration scanning
 
 ### 🚀 Performance Optimizations
 - **2x Faster UI**: Reduced refresh rate from 4fps to 2fps for smoother performance
@@ -38,6 +44,8 @@ Evyl Framework v3.0 is a production-ready Python exploitation framework designed
 
 - **🌐 Multi-Cloud Platform Testing**: AWS, GCP, Azure, Kubernetes
 - **🔍 Credential Discovery**: 1500+ vulnerable endpoints across cloud services
+- **📧 Email Service Security Testing**: SMTP, AWS SES, SendGrid, Mailgun validation
+- **🔐 Laravel Framework Security**: Advanced Laravel vulnerability assessment
 - **✅ Automatic Validation**: Real-time credential verification
 - **📊 Optimized Progress Monitoring**: High-performance real-time UI with statistics
 - **🛡️ Advanced Evasion**: Proxy rotation, user-agent spoofing, rate limiting
@@ -51,16 +59,22 @@ Evyl Framework v3.0 is a production-ready Python exploitation framework designed
 - **GCP Resources**: Service accounts, access tokens, project enumeration  
 - **Azure Assets**: Managed identities, access tokens, subscription discovery
 - **Web Applications**: Git exposure, configuration files, backup discovery
+- **Laravel Applications**: .env files, debug interfaces, configuration exposure
+- **Email Services**: SMTP configuration testing, AWS SES security assessment
 
 ### 🔐 Credential Harvesting
-- **25+ Advanced Regex Patterns**: AWS keys, API tokens, database URLs
+- **30+ Advanced Regex Patterns**: AWS keys, API tokens, database URLs, SMTP configs
+- **Email Service Detection**: SendGrid, Mailgun, AWS SES, SMTP credentials
+- **Laravel Configuration**: Environment files, database credentials, mail settings
 - **Real-time Extraction**: Live credential discovery during scanning
 - **Context Analysis**: Line numbers, surrounding code, source URLs
 - **Deduplication**: Intelligent filtering of duplicate findings
 
 ### ✅ Validation Engine
 - **AWS**: STS calls, S3 enumeration, SES quota checks
-- **Email Services**: SendGrid, Mailgun, Postmark, SparkPost, Brevo
+- **Email Services**: SendGrid, Mailgun, Postmark, SparkPost, Brevo validation
+- **SMTP Security**: Connection testing, authentication validation, open relay detection
+- **AWS SES**: Credential validation, sending quota analysis, verified email enumeration
 - **SMS Services**: Twilio account validation
 - **Database**: MySQL, PostgreSQL, MongoDB, Redis connections
 
@@ -262,6 +276,15 @@ The framework includes comprehensive pattern databases:
 - **Configuration Files**: .env, config.json, settings discovery
 - **Backup Files**: Database dumps, archive discovery
 - **JavaScript Analysis**: Client-side secret extraction
+- **Laravel Security Testing**: Framework-specific vulnerability assessment
+- **SMTP Configuration Discovery**: Email service configuration exposure testing
+
+### Email Security Module
+- **SMTP Service Discovery**: Port scanning and service identification
+- **Configuration Exposure**: Detection of exposed SMTP settings
+- **Security Assessment**: Open relay testing, STARTTLS support verification
+- **AWS SES Analysis**: Credential validation and configuration security
+- **Credential Extraction**: SMTP and email service credential discovery
 
 ## 🔧 Configuration
 
