@@ -100,6 +100,63 @@ class Scanner:
             self.logger.warning(f"Path file not found: {filename}")
             return []
     
+    async def scan_targets_with_urls(self, urls_to_scan: List[str], progress_display=None) -> ScanStats:
+        """Scan pre-generated URLs concurrently"""
+        self.logger.info(f"Starting scan of {len(urls_to_scan)} URLs with {self.threads} threads")
+        
+        # URLs are already generated, just update stats
+        self.stats.unique_urls = len(urls_to_scan)
+        
+        # Update progress display with initial stats
+        if progress_display:
+            progress_display.update_stats(self.stats)
+        
+        # Create semaphore to limit concurrent requests
+        semaphore = asyncio.Semaphore(self.threads)
+        
+        # Create async session
+        connector = aiohttp.TCPConnector(
+            ssl=self.ssl_context,
+            limit=self.threads * 2,
+            limit_per_host=min(50, self.threads)  # Prevent too many connections per host
+        )
+        
+        # Set timeout for session
+        if self.timeout is not None:
+            session_timeout = aiohttp.ClientTimeout(total=self.timeout)
+        else:
+            session_timeout = aiohttp.ClientTimeout(total=None)  # No timeout
+        
+        async with aiohttp.ClientSession(
+            connector=connector,
+            timeout=session_timeout
+        ) as session:
+            # Create tasks for all URLs
+            tasks = [
+                self._scan_url_async(session, semaphore, url, progress_display)
+                for url in urls_to_scan
+            ]
+            
+            # Process tasks as they complete
+            for task in asyncio.as_completed(tasks):
+                try:
+                    result = await task
+                    if result:
+                        self.results.append(result)
+                        self._extract_credentials(result)
+                        self.stats.total_processed += 1
+                        
+                        # Update progress
+                        if progress_display:
+                            progress_display.update_stats(self.stats)
+                            
+                except Exception as e:
+                    self.logger.error(f"Task failed: {e}")
+        
+        # Calculate final statistics
+        self._calculate_final_stats()
+        return self.stats
+
     async def scan_targets(self, targets: List[str], progress_display=None) -> ScanStats:
         """Scan multiple targets concurrently"""
         self.logger.info(f"Starting scan of {len(targets)} targets with {self.threads} threads")
@@ -107,6 +164,10 @@ class Scanner:
         # Generate all URLs to scan
         urls_to_scan = self._generate_urls(targets)
         self.stats.unique_urls = len(urls_to_scan)
+        
+        # Update progress display with initial stats
+        if progress_display:
+            progress_display.update_stats(self.stats)
         
         # Create semaphore to limit concurrent requests
         semaphore = asyncio.Semaphore(self.threads)
