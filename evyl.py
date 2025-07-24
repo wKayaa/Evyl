@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Evyl Framework v3.0 - Advanced Cloud Exploitation Framework
+Evyl Framework v3.1 - Advanced Cloud Exploitation Framework
 Author: Evyl Team
 License: MIT
 
@@ -459,7 +459,7 @@ def handle_diagnose_command(args):
 def parse_arguments():
     """Parse command line arguments"""
     parser = argparse.ArgumentParser(
-        description="Evyl Framework v3.0 - Advanced Cloud Exploitation Framework",
+        description="Evyl Framework v3.1 - Advanced Cloud Exploitation Framework",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -539,6 +539,10 @@ Examples:
                              help='Enable Azure scanning (default: enabled)')
     module_group.add_argument('--web', action='store_true', default=True,
                              help='Enable web application scanning (default: enabled)')
+    module_group.add_argument('--laravel', action='store_true', default=True,
+                             help='Enable Laravel framework security testing (default: enabled)')
+    module_group.add_argument('--smtp', action='store_true', default=True,
+                             help='Enable SMTP security testing (default: enabled)')
     module_group.add_argument('--all-modules', action='store_true', default=True,
                              help='Enable all scanning modules (default: enabled)')
     module_group.add_argument('--path-scanner', action='store_true', default=True,
@@ -555,11 +559,15 @@ Examples:
     validation_group.add_argument('--validation-timeout', type=int, default=30,
                                  help='Validation timeout in seconds (default: 30)')
     validation_group.add_argument('--crack-aws', action='store_true', default=True,
-                                 help='Enable AWS credential cracking (default: enabled)')
+                                 help='Enable AWS credential validation (default: enabled)')
     validation_group.add_argument('--crack-api', action='store_true', default=True,
-                                 help='Enable API credential cracking (default: enabled)')
+                                 help='Enable API credential validation (default: enabled)')
     validation_group.add_argument('--crack-smtp', action='store_true', default=True,
-                                 help='Enable SMTP credential cracking (default: enabled)')
+                                 help='Enable SMTP credential validation (default: enabled)')
+    validation_group.add_argument('--validate-email', action='store_true', default=True,
+                                 help='Enable email service validation (default: enabled)')
+    validation_group.add_argument('--validate-ses', action='store_true', default=True,
+                                 help='Enable AWS SES validation (default: enabled)')
     
     # Output options
     output_group = parser.add_argument_group('Output Options')
@@ -583,7 +591,7 @@ Examples:
                            help='Enable verbose output')
     misc_group.add_argument('--resume', help='Resume from previous scan state')
     misc_group.add_argument('--config', help='Configuration file')
-    misc_group.add_argument('--version', action='version', version='Evyl Framework v3.0')
+    misc_group.add_argument('--version', action='version', version='Evyl Framework v3.1')
     
     return parser.parse_args()
 

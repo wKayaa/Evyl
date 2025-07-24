@@ -16,7 +16,7 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
 
 setup(
     name="evyl-framework",
-    version="2.0.0",
+    version="3.1.0",
     author="Evyl Team",
     author_email="contact@evyl.dev",
     description="Advanced Cloud Exploitation Framework for Authorized Security Testing",
