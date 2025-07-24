@@ -41,6 +41,43 @@ from utils.telegram import TelegramNotifier, TelegramProgressNotifier
 
 console = Console()
 
+class ProgressWrapper:
+    """Wrapper to handle progress display with Live updates"""
+    
+    def __init__(self, progress_display, telegram_progress):
+        self.progress_display = progress_display
+        self.telegram_progress = telegram_progress
+        self.last_hit_count = 0
+        
+    def get_layout(self):
+        """Get the layout for Live display"""
+        return self.progress_display.create_layout()
+    
+    def update_stats(self, stats):
+        """Update statistics and handle Telegram notifications"""
+        # Update base progress
+        self.progress_display.update_stats(stats)
+        
+        # Check for new hits and send notifications
+        current_hits = len(stats.credentials)
+        if current_hits > self.last_hit_count:
+            # New hits found, send notifications for each new hit
+            for i in range(self.last_hit_count, current_hits):
+                if i < len(stats.credentials):
+                    asyncio.create_task(self.telegram_progress.notifier.notify_hit_found(stats.credentials[i]))
+            self.last_hit_count = current_hits
+        
+        # Send progress update if needed
+        asyncio.create_task(self.telegram_progress.maybe_notify_progress(
+            stats.total_processed, 
+            stats.unique_urls, 
+            current_hits
+        ))
+    
+    def update_filename(self, filename):
+        """Update filename"""
+        self.progress_display.update_filename(filename)
+
 class EvylFramework:
     """Main Evyl Framework orchestrator"""
     
@@ -134,10 +171,11 @@ class EvylFramework:
                 self.progress.update_stats(self.scanner.stats)
                 self.logger.info(f"Generated {len(urls_to_scan)} URLs to scan")
                 
-                # Initialize progress display
-                with Live(self.progress.create_layout(), refresh_per_second=4, console=console):
+                # Initialize progress display with proper updating
+                progress_wrapper = ProgressWrapper(self.progress, self.telegram_progress)
+                with Live(progress_wrapper.get_layout(), refresh_per_second=4, console=console) as live:
                     # Start scanning (skip URL generation since we already did it)
-                    scan_results = await self.scanner.scan_targets_with_urls(urls_to_scan, self.progress)
+                    scan_results = await self.scanner.scan_targets_with_urls(urls_to_scan, progress_wrapper)
                 
                 # Validate credentials if requested
                 if self.validator and scan_results.credentials:
@@ -171,39 +209,6 @@ class EvylFramework:
         except Exception as e:
             self.logger.error(f"Scan failed: {e}")
             await self.telegram.notify_error(f"Scan failed: {str(e)}")
-    
-    def create_enhanced_progress_display(self):
-        """Create a progress display that includes Telegram notifications"""
-        class EnhancedProgressDisplay:
-            def __init__(self, base_progress, telegram_progress):
-                self.base_progress = base_progress
-                self.telegram_progress = telegram_progress
-                self.last_hit_count = 0
-            
-            def update_stats(self, stats):
-                # Update base progress
-                self.base_progress.update_stats(stats)
-                
-                # Check for new hits and send notifications
-                current_hits = len(stats.credentials)
-                if current_hits > self.last_hit_count:
-                    # New hits found, send notifications for each new hit
-                    for i in range(self.last_hit_count, current_hits):
-                        if i < len(stats.credentials):
-                            asyncio.create_task(self.telegram_progress.notifier.notify_hit_found(stats.credentials[i]))
-                    self.last_hit_count = current_hits
-                
-                # Send progress update if needed
-                asyncio.create_task(self.telegram_progress.maybe_notify_progress(
-                    stats.total_processed, 
-                    stats.unique_urls, 
-                    current_hits
-                ))
-            
-            def update_filename(self, filename):
-                self.base_progress.update_filename(filename)
-        
-        return EnhancedProgressDisplay(self.progress, self.telegram_progress)
     
     def load_targets(self) -> List[str]:
         """Load targets from file or command line"""
