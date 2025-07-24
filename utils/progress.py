@@ -1,12 +1,12 @@
 """
-Real-time Progress Display for Evyl Framework
+Optimized Real-time Progress Display for Evyl Framework v3.0
 
-Creates a live display matching the specified format with:
-- Elapsed time tracking
-- Progress bars with percentages
-- Live statistics
-- Hit counters per service
-- CPU/RAM/Network monitoring
+Creates a high-performance live display with:
+- Reduced refresh overhead
+- Configurable language support
+- Optimized memory usage
+- Smoother progress tracking
+- Enhanced system monitoring
 """
 
 import time
@@ -48,34 +48,90 @@ class ScanMetrics:
             }
 
 class ProgressDisplay:
-    """Real-time progress display with live updates"""
+    """Optimized real-time progress display with improved performance"""
     
-    def __init__(self):
+    def __init__(self, language='en'):
         self.console = Console()
+        self.language = language  # 'en' for English, 'fr' for French
         self.metrics = ScanMetrics()
         self.start_time = time.time()
         self.metrics.start_time = self.start_time
         
-        # Progress tracking
+        # Performance optimization: reduce update frequency
+        self.last_update = 0
+        self.update_interval = 0.5  # Update every 500ms instead of 250ms
+        
+        # Language configuration
+        self.text_config = self._get_text_config()
+        
+        # Progress tracking with optimization
         self.progress = Progress(
             TextColumn("[progress.description]{task.description}"),
-            BarColumn(),
+            BarColumn(bar_width=None),  # Auto-width for performance
             TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
             TimeElapsedColumn(),
+            expand=True
         )
         
-        # System monitoring
+        # System monitoring with caching
         self.process = psutil.Process()
         self.network_stats = {'requests': 0, 'bytes_sent': 0, 'bytes_received': 0}
+        self.cached_stats = None
+        self.stats_cache_time = 0
+    
+    def _get_text_config(self):
+        """Get language-specific text configuration"""
+        if self.language == 'fr':
+            return {
+                'header': '🔍 EVYL CHECKER V3.0 - SCAN EN COURS 🔍',
+                'file': 'Fichier',
+                'elapsed': 'Temps écoulé',
+                'progress': 'Progression',
+                'stats_total': 'STATS TOTAL',
+                'urls_processed': 'URLs traitées',
+                'urls_unique': 'URLs uniques',
+                'urls_validated': 'URLs validées',
+                'success_rate': 'Taux de réussite',
+                'hits_found': 'HITS TROUVÉS',
+                'total': 'TOTAL',
+                'proxies_used': 'Proxies utilisés'
+            }
+        else:
+            return {
+                'header': '🔍 EVYL SCANNER V3.0 - SCAN IN PROGRESS 🔍',
+                'file': 'File',
+                'elapsed': 'Elapsed time',
+                'progress': 'Progress',
+                'stats_total': 'TOTAL STATS',
+                'urls_processed': 'URLs processed',
+                'urls_unique': 'Unique URLs',
+                'urls_validated': 'URLs validated',
+                'success_rate': 'Success rate',
+                'hits_found': 'HITS FOUND',
+                'total': 'TOTAL',
+                'proxies_used': 'Proxies used'
+            }
     
     def create_layout(self) -> Layout:
-        """Create the main layout for live display"""
+        """Create optimized layout for live display"""
+        # Check if we should update (performance optimization)
+        current_time = time.time()
+        if current_time - self.last_update < self.update_interval and self.cached_stats:
+            return self.cached_layout if hasattr(self, 'cached_layout') else self._build_layout()
+        
+        self.last_update = current_time
+        layout = self._build_layout()
+        self.cached_layout = layout
+        return layout
+    
+    def _build_layout(self) -> Layout:
+        """Build the actual layout"""
         layout = Layout()
         
         layout.split_column(
             Layout(name="header", size=3),
             Layout(name="main", ratio=1),
-            Layout(name="footer", size=8)
+            Layout(name="footer", size=6)  # Reduced from 8 for better performance
         )
         
         layout["main"].split_row(
@@ -92,9 +148,9 @@ class ProgressDisplay:
         return layout
     
     def _create_header(self) -> Panel:
-        """Create the header panel"""
+        """Create the optimized header panel"""
         header_text = Text()
-        header_text.append("🔍 EVYL CHECKER V2.0 - SCAN EN COURS 🔍", style="bold green")
+        header_text.append(self.text_config['header'], style="bold green")
         
         return Panel(
             header_text,
@@ -103,14 +159,14 @@ class ProgressDisplay:
         )
     
     def _create_progress_panel(self) -> Panel:
-        """Create the progress panel"""
+        """Create the optimized progress panel"""
         elapsed_time = self._format_elapsed_time()
         progress_percentage = self._calculate_progress()
         progress_bar = self._create_progress_bar(progress_percentage)
         
-        content = f"""📁 Fichier: {self.metrics.filename}
-⏱️ Temps écoulé: {elapsed_time}
-📊 Progression: [{progress_bar}] {progress_percentage:.1f}%"""
+        content = f"""{self.text_config['file']}: {self.metrics.filename}
+⏱️ {self.text_config['elapsed']}: {elapsed_time}
+📊 {self.text_config['progress']}: [{progress_bar}] {progress_percentage:.1f}%"""
         
         return Panel(
             content,
@@ -119,14 +175,14 @@ class ProgressDisplay:
         )
     
     def _create_stats_panel(self) -> Panel:
-        """Create the statistics panel"""
+        """Create the optimized statistics panel"""
         success_rate = self._calculate_success_rate()
         
-        content = f"""📈 STATS TOTAL:
-🌐 URLs traitées: {self.metrics.urls_processed:,}
-🎯 URLs uniques: {self.metrics.urls_unique:,}
-✅ URLs validées: {self.metrics.urls_validated:,}
-📉 Taux de réussite: {success_rate:.1f}%"""
+        content = f"""📈 {self.text_config['stats_total']}:
+🌐 {self.text_config['urls_processed']}: {self.metrics.urls_processed:,}
+🎯 {self.text_config['urls_unique']}: {self.metrics.urls_unique:,}
+✅ {self.text_config['urls_validated']}: {self.metrics.urls_validated:,}
+📉 {self.text_config['success_rate']}: {success_rate:.1f}%"""
         
         return Panel(
             content,
@@ -135,23 +191,19 @@ class ProgressDisplay:
         )
     
     def _create_hits_panel(self) -> Panel:
-        """Create the hits panel"""
+        """Create the optimized hits panel"""
         system_stats = self._get_system_stats()
         current_time = datetime.now().strftime("%H:%M:%S")
         
-        content = f"""🏆 HITS TROUVÉS (TOTAL: {self.metrics.total_hits}):
-✅ AWS: {self.metrics.hits_by_service['aws']}
-✅ SendGrid: {self.metrics.hits_by_service['sendgrid']}
-✅ Brevo: {self.metrics.hits_by_service['brevo']}
-✅ SMTP: {self.metrics.hits_by_service['smtp']}
-✅ Postmark: {self.metrics.hits_by_service['postmark']}
-✅ SparkPost: {self.metrics.hits_by_service['sparkpost']}
-✅ Mailgun: {self.metrics.hits_by_service['mailgun']}
-✅ Twilio: {self.metrics.hits_by_service['twilio']}
+        # Organize hits in a more compact way
+        hits_line1 = f"✅ AWS: {self.metrics.hits_by_service['aws']}  ✅ SendGrid: {self.metrics.hits_by_service['sendgrid']}  ✅ Brevo: {self.metrics.hits_by_service['brevo']}  ✅ SMTP: {self.metrics.hits_by_service['smtp']}"
+        hits_line2 = f"✅ Postmark: {self.metrics.hits_by_service['postmark']}  ✅ SparkPost: {self.metrics.hits_by_service['sparkpost']}  ✅ Mailgun: {self.metrics.hits_by_service['mailgun']}  ✅ Twilio: {self.metrics.hits_by_service['twilio']}"
+        
+        content = f"""🏆 {self.text_config['hits_found']} ({self.text_config['total']}: {self.metrics.total_hits}):
+{hits_line1}
+{hits_line2}
 
-💻 CPU: {system_stats['cpu']}% | 🧠 RAM: {system_stats['ram']} MB | 📡 HTTP: {system_stats['network']}
-🔄 Proxies utilisés: {system_stats['proxy_count']}
-⏰ {current_time}"""
+💻 CPU: {system_stats['cpu']}% | 🧠 RAM: {system_stats['ram']} MB | 📡 HTTP: {system_stats['network']} | ⏰ {current_time}"""
         
         return Panel(
             content,
@@ -180,8 +232,8 @@ class ProgressDisplay:
             return 0.0
         return (self.metrics.urls_processed / self.metrics.urls_unique) * 100
     
-    def _create_progress_bar(self, percentage: float, width: int = 30) -> str:
-        """Create a text-based progress bar"""
+    def _create_progress_bar(self, percentage: float, width: int = 25) -> str:
+        """Create an optimized text-based progress bar (reduced width for performance)"""
         filled = int((percentage / 100) * width)
         bar = "█" * filled + "░" * (width - filled)
         return bar
@@ -193,21 +245,33 @@ class ProgressDisplay:
         return (self.metrics.urls_validated / self.metrics.urls_processed) * 100
     
     def _get_system_stats(self) -> Dict[str, Any]:
-        """Get system statistics"""
+        """Get cached system statistics for better performance"""
+        current_time = time.time()
+        
+        # Use cached stats if recent enough (1 second cache)
+        if self.cached_stats and (current_time - self.stats_cache_time) < 1.0:
+            return self.cached_stats
+        
         try:
-            cpu_percent = psutil.cpu_percent(interval=0.1)
+            cpu_percent = psutil.cpu_percent(interval=None)  # Use None for non-blocking
             memory_info = self.process.memory_info()
             ram_mb = memory_info.rss / 1024 / 1024
             
-            # Network stats (simplified)
-            network_info = f"{self.network_stats['requests']} req"
+            # Network stats (simplified for performance)
+            network_info = f"{self.network_stats['requests']}/s"
             
-            return {
+            stats = {
                 'cpu': f"{cpu_percent:.1f}",
                 'ram': f"{ram_mb:.1f}",
                 'network': network_info,
                 'proxy_count': 0  # Will be updated by network manager
             }
+            
+            # Cache the stats
+            self.cached_stats = stats
+            self.stats_cache_time = current_time
+            return stats
+            
         except Exception:
             return {
                 'cpu': "N/A",
@@ -217,7 +281,15 @@ class ProgressDisplay:
             }
     
     def update_stats(self, scan_stats):
-        """Update metrics from scan statistics"""
+        """Update metrics from scan statistics with throttling"""
+        current_time = time.time()
+        
+        # Throttle updates for very high-frequency scans
+        if hasattr(self, 'last_stats_update') and (current_time - self.last_stats_update) < 0.1:
+            return  # Skip update if too frequent
+        
+        self.last_stats_update = current_time
+        
         self.metrics.urls_processed = scan_stats.total_processed
         self.metrics.urls_unique = scan_stats.unique_urls
         self.metrics.urls_validated = scan_stats.valid_credentials
@@ -229,11 +301,12 @@ class ProgressDisplay:
         for service in self.metrics.hits_by_service:
             self.metrics.hits_by_service[service] = 0
         
-        # Count hits by service
+        # Count hits by service (optimized)
         for cred in scan_stats.credentials:
             cred_type = cred.get('type', '').lower()
             service = cred.get('service', '').lower()
             
+            # Faster string matching
             if 'aws' in cred_type:
                 self.metrics.hits_by_service['aws'] += 1
             elif 'sendgrid' in cred_type or 'sendgrid' in service:

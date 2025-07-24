@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Evyl Framework v2.0 - Advanced Cloud Exploitation Framework
+Evyl Framework v3.0 - Advanced Cloud Exploitation Framework
 Author: Evyl Team
 License: MIT
 
@@ -8,8 +8,8 @@ A modular exploitation framework for authorized security testing that:
 - Scans and exploits cloud infrastructure (AWS, GCP, Azure, Kubernetes)
 - Extracts credentials from 1500+ vulnerable endpoints
 - Validates all discovered secrets automatically
-- Provides real-time progress monitoring
-- Operates with advanced evasion techniques
+- Provides optimized real-time progress monitoring
+- Operates with advanced evasion techniques and improved performance
 """
 
 import argparse
@@ -105,7 +105,10 @@ class EvylFramework:
         self.exploiter = Exploiter(self.scanner)
         self.validator = Validator() if getattr(args, 'validate', True) else None
         self.reporter = Reporter(getattr(args, 'output_dir', 'results'))
-        self.progress = ProgressDisplay()
+        
+        # Initialize progress display with language support
+        language = getattr(args, 'language', 'en')  # Default to English
+        self.progress = ProgressDisplay(language=language)
         self.scan_start_time = None
         
     def _parse_unlimited_value(self, value, default_unlimited=None):
@@ -123,12 +126,12 @@ class EvylFramework:
         """Display the framework banner"""
         banner_text = """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║                       🔥 EVYL FRAMEWORK v2.0 🔥                             ║
-║                   Advanced Cloud Exploitation Framework                      ║
+║                       🔥 EVYL FRAMEWORK v3.0 🔥                             ║
+║                Advanced Cloud Exploitation Framework (OPTIMIZED)            ║
 ║                                                                              ║
 ║  🎯 Target Discovery    🔍 Credential Extraction    ✅ Automatic Validation ║
 ║  ☁️  Cloud Platforms    🐳 Kubernetes Clusters     🌐 Web Applications      ║
-║  🛡️  Evasion Techniques 📊 Real-time Progress      📈 Performance Analytics ║
+║  🛡️  Evasion Techniques 📊 High-Performance UI     📈 Advanced Analytics   ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
         """
         console.print(Panel(banner_text, style="bold green"))
@@ -171,9 +174,9 @@ class EvylFramework:
                 self.progress.update_stats(self.scanner.stats)
                 self.logger.info(f"Generated {len(urls_to_scan)} URLs to scan")
                 
-                # Initialize progress display with proper updating
+                # Initialize progress display with optimized updating
                 progress_wrapper = ProgressWrapper(self.progress, self.telegram_progress)
-                with Live(progress_wrapper.get_layout(), refresh_per_second=4, console=console) as live:
+                with Live(progress_wrapper.get_layout(), refresh_per_second=2, console=console) as live:
                     # Start scanning (skip URL generation since we already did it)
                     scan_results = await self.scanner.scan_targets_with_urls(urls_to_scan, progress_wrapper)
                 
@@ -241,7 +244,7 @@ class EvylFramework:
         console.print(table)
 
 def auto_detect_optimal_threads():
-    """Auto-detect optimal number of threads based on system resources"""
+    """Auto-detect optimal number of threads based on system resources (v3.0 optimized)"""
     import psutil
     try:
         # Get CPU count
@@ -249,19 +252,27 @@ def auto_detect_optimal_threads():
         # Get available memory in GB
         memory_gb = psutil.virtual_memory().available / (1024**3)
         
-        # Basic algorithm: use CPU count * 4, but limit based on memory
-        optimal_threads = cpu_count * 4
+        # Improved algorithm for v3.0: better scaling
+        if memory_gb >= 8:
+            # High memory systems can handle more threads
+            optimal_threads = cpu_count * 6
+        elif memory_gb >= 4:
+            # Medium memory systems
+            optimal_threads = cpu_count * 4
+        else:
+            # Low memory systems
+            optimal_threads = cpu_count * 2
         
-        # Limit based on available memory (1 thread per 100MB)
-        memory_limit = int(memory_gb * 10)
+        # Memory-based limit (more conservative for stability)
+        memory_limit = int(memory_gb * 8)  # 8 threads per GB
         optimal_threads = min(optimal_threads, memory_limit)
         
-        # Ensure minimum and maximum bounds
-        optimal_threads = max(10, min(optimal_threads, 500))
+        # Enhanced bounds for v3.0
+        optimal_threads = max(8, min(optimal_threads, 200))
         
         return optimal_threads
     except Exception:
-        return 50  # Safe default
+        return 32  # Better default for v3.0
 
 def handle_run_command(args):
     """Handle the run command with auto-configuration"""
@@ -446,7 +457,7 @@ def handle_diagnose_command(args):
 def parse_arguments():
     """Parse command line arguments"""
     parser = argparse.ArgumentParser(
-        description="Evyl Framework v2.0 - Advanced Cloud Exploitation Framework",
+        description="Evyl Framework v3.0 - Advanced Cloud Exploitation Framework",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -454,7 +465,7 @@ Examples:
   %(prog)s -f targets.txt -o results/
   %(prog)s -t https://example.com -t https://test.com
   
-  # New one-command launch
+  # New optimized one-command launch
   %(prog)s run targets.txt
   %(prog)s run targets.txt --threads=50 --telegram
   %(prog)s run targets.txt --force-start --skip-validation
@@ -482,6 +493,8 @@ Examples:
     run_parser.add_argument('--debug-threads', action='store_true', help='Debug thread deadlocks')
     run_parser.add_argument('--auto', action='store_true', help='Enable all automatic features')
     run_parser.add_argument('--verbose', action='store_true', help='Enable verbose output')
+    run_parser.add_argument('--language', choices=['en', 'fr'], default='en', help='UI language (en=English, fr=Français)')
+    run_parser.add_argument('--performance-mode', choices=['low', 'normal', 'high'], default='normal', help='Performance optimization level')
     
     # Reset command
     reset_parser = subparsers.add_parser('reset', help='Reset scanner state')
@@ -568,7 +581,7 @@ Examples:
                            help='Enable verbose output')
     misc_group.add_argument('--resume', help='Resume from previous scan state')
     misc_group.add_argument('--config', help='Configuration file')
-    misc_group.add_argument('--version', action='version', version='Evyl Framework v2.0')
+    misc_group.add_argument('--version', action='version', version='Evyl Framework v3.0')
     
     return parser.parse_args()
 

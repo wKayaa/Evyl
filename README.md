@@ -1,26 +1,27 @@
-# 🔥 Evyl Framework v2.0
+# 🔥 Evyl Framework v3.0
 
 <div align="center">
 
-![Evyl Framework](https://img.shields.io/badge/Evyl-Framework%20v2.0-red?style=for-the-badge&logo=security&logoColor=white)
+![Evyl Framework](https://img.shields.io/badge/Evyl-Framework%20v3.0-red?style=for-the-badge&logo=security&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3.8+-blue?style=for-the-badge&logo=python&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
 **Advanced Cloud Exploitation Framework for Authorized Security Testing**
 
-*Comprehensive credential harvesting and cloud exploitation toolkit*
+*Comprehensive credential harvesting and cloud exploitation toolkit with optimized performance*
 
 </div>
 
 ## 🎯 Overview
 
-Evyl Framework v2.0 is a production-ready Python exploitation framework designed for authorized security testing. It provides comprehensive capabilities for:
+Evyl Framework v3.0 is a production-ready Python exploitation framework designed for authorized security testing. It provides comprehensive capabilities for:
 
 - **🌐 Multi-Cloud Platform Testing**: AWS, GCP, Azure, Kubernetes
 - **🔍 Credential Discovery**: 1500+ vulnerable endpoints across cloud services
 - **✅ Automatic Validation**: Real-time credential verification
-- **📊 Live Progress Monitoring**: Beautiful real-time UI with statistics
+- **📊 Optimized Progress Monitoring**: High-performance real-time UI with statistics
 - **🛡️ Advanced Evasion**: Proxy rotation, user-agent spoofing, rate limiting
+- **🌐 Multi-Language Support**: English/French UI with configurable display
 
 ## ✨ Key Features
 
@@ -43,26 +44,25 @@ Evyl Framework v2.0 is a production-ready Python exploitation framework designed
 - **SMS Services**: Twilio account validation
 - **Database**: MySQL, PostgreSQL, MongoDB, Redis connections
 
-### 📊 Real-time Progress Display
+### 📊 High-Performance Progress Display
 ```
-🔍 EVYL CHECKER V2.0 - SCAN EN COURS 🔍
+🔍 EVYL SCANNER V3.0 - SCAN IN PROGRESS 🔍
 
-📁 Fichier: domains-list-hq.txt
-⏱️ Temps écoulé: 73s 33m 21s  
-📊 Progression: [████████████████████████████████████] 88.4%
+📁 File: domains-list-hq.txt
+⏱️ Elapsed time: 73s 33m 21s  
+📊 Progress: [████████████████████████████████████] 88.4%
 
-📈 STATS TOTAL:
-🌐 URLs traitées: 5,566,407
-🎯 URLs uniques: 4,475,128
-✅ URLs validées: 1,001,339
-📉 Taux de réussite: 88.4%
+📈 TOTAL STATS:
+🌐 URLs processed: 5,566,407
+🎯 Unique URLs: 4,475,128
+✅ URLs validated: 1,001,339
+📉 Success rate: 88.4%
 
-🏆 HITS TROUVÉS (TOTAL: 2,808):
-✅ AWS: 342        ✅ SendGrid: 156
-✅ GCP: 89         ✅ Mailgun: 78
-✅ Azure: 134      ✅ Twilio: 45
+🏆 HITS FOUND (TOTAL: 2,808):
+✅ AWS: 342  ✅ SendGrid: 156  ✅ Brevo: 89  ✅ SMTP: 134
+✅ Postmark: 78  ✅ SparkPost: 45  ✅ Mailgun: 67  ✅ Twilio: 32
 
-💻 CPU: 100.0% | 🧠 RAM: 8141.2 MB | 📡 HTTP: 2,341 req/s
+💻 CPU: 100.0% | 🧠 RAM: 8141.2 MB | 📡 HTTP: 2,341/s | ⏰ 15:30:45
 ```
 
 ## 🚀 Quick Start
