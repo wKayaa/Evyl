@@ -1,26 +1,47 @@
-# 🔥 Evyl Framework v2.0
+# 🔥 Evyl Framework v3.0
 
 <div align="center">
 
-![Evyl Framework](https://img.shields.io/badge/Evyl-Framework%20v2.0-red?style=for-the-badge&logo=security&logoColor=white)
+![Evyl Framework](https://img.shields.io/badge/Evyl-Framework%20v3.0-red?style=for-the-badge&logo=security&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3.8+-blue?style=for-the-badge&logo=python&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
 **Advanced Cloud Exploitation Framework for Authorized Security Testing**
 
-*Comprehensive credential harvesting and cloud exploitation toolkit*
+*Comprehensive credential harvesting and cloud exploitation toolkit with optimized performance*
 
 </div>
 
+## ✨ What's New in v3.0
+
+### 🚀 Performance Optimizations
+- **2x Faster UI**: Reduced refresh rate from 4fps to 2fps for smoother performance
+- **Memory Management**: Automatic memory cleanup for large-scale scans (1M+ URLs)  
+- **Smart Threading**: Enhanced auto-detection algorithm based on system resources
+- **Connection Pooling**: Optimized HTTP connection reuse with DNS caching
+
+### 🌐 User Interface Improvements  
+- **Multi-Language Support**: English/French UI via `--language` parameter
+- **Compact Layout**: Streamlined hits display for better visibility
+- **Performance Modes**: Low/Normal/High performance profiles
+- **Better Error Handling**: Improved error messages and recovery
+
+### 🎯 Usability Enhancements
+- **One-Command Launch**: Simple `evyl run targets.txt` for instant scanning
+- **Auto-Configuration**: Intelligent defaults based on system capabilities
+- **Progress Throttling**: Reduced CPU overhead during high-frequency scans
+- **Memory Monitoring**: Real-time memory usage tracking and optimization
+
 ## 🎯 Overview
 
-Evyl Framework v2.0 is a production-ready Python exploitation framework designed for authorized security testing. It provides comprehensive capabilities for:
+Evyl Framework v3.0 is a production-ready Python exploitation framework designed for authorized security testing. It provides comprehensive capabilities for:
 
 - **🌐 Multi-Cloud Platform Testing**: AWS, GCP, Azure, Kubernetes
 - **🔍 Credential Discovery**: 1500+ vulnerable endpoints across cloud services
 - **✅ Automatic Validation**: Real-time credential verification
-- **📊 Live Progress Monitoring**: Beautiful real-time UI with statistics
+- **📊 Optimized Progress Monitoring**: High-performance real-time UI with statistics
 - **🛡️ Advanced Evasion**: Proxy rotation, user-agent spoofing, rate limiting
+- **🌐 Multi-Language Support**: English/French UI with configurable display
 
 ## ✨ Key Features
 
@@ -43,26 +64,25 @@ Evyl Framework v2.0 is a production-ready Python exploitation framework designed
 - **SMS Services**: Twilio account validation
 - **Database**: MySQL, PostgreSQL, MongoDB, Redis connections
 
-### 📊 Real-time Progress Display
+### 📊 High-Performance Progress Display
 ```
-🔍 EVYL CHECKER V2.0 - SCAN EN COURS 🔍
+🔍 EVYL SCANNER V3.0 - SCAN IN PROGRESS 🔍
 
-📁 Fichier: domains-list-hq.txt
-⏱️ Temps écoulé: 73s 33m 21s  
-📊 Progression: [████████████████████████████████████] 88.4%
+📁 File: domains-list-hq.txt
+⏱️ Elapsed time: 73s 33m 21s  
+📊 Progress: [████████████████████████████████████] 88.4%
 
-📈 STATS TOTAL:
-🌐 URLs traitées: 5,566,407
-🎯 URLs uniques: 4,475,128
-✅ URLs validées: 1,001,339
-📉 Taux de réussite: 88.4%
+📈 TOTAL STATS:
+🌐 URLs processed: 5,566,407
+🎯 Unique URLs: 4,475,128
+✅ URLs validated: 1,001,339
+📉 Success rate: 88.4%
 
-🏆 HITS TROUVÉS (TOTAL: 2,808):
-✅ AWS: 342        ✅ SendGrid: 156
-✅ GCP: 89         ✅ Mailgun: 78
-✅ Azure: 134      ✅ Twilio: 45
+🏆 HITS FOUND (TOTAL: 2,808):
+✅ AWS: 342  ✅ SendGrid: 156  ✅ Brevo: 89  ✅ SMTP: 134
+✅ Postmark: 78  ✅ SparkPost: 45  ✅ Mailgun: 67  ✅ Twilio: 32
 
-💻 CPU: 100.0% | 🧠 RAM: 8141.2 MB | 📡 HTTP: 2,341 req/s
+💻 CPU: 100.0% | 🧠 RAM: 8141.2 MB | 📡 HTTP: 2,341/s | ⏰ 15:30:45
 ```
 
 ## 🚀 Quick Start
@@ -91,20 +111,23 @@ docker build -t evyl-framework .
 docker run -v $(pwd)/results:/app/results evyl-framework -f targets.txt
 ```
 
-### Basic Usage
+### Basic Usage (v3.0 Optimized)
 
 ```bash
-# Scan single target
-python evyl.py -t https://example.com
+# Quick scan with auto-optimization
+python evyl.py run targets.txt
 
-# Scan multiple targets from file
-python evyl.py -f targets.txt -o results/
+# High-performance scan with English UI
+python evyl.py run domains.txt --language=en --performance-mode=high
 
-# Enable all modules with validation
-python evyl.py -f domains.txt --all-modules --validate
+# French interface with custom threading
+python evyl.py run targets.txt --language=fr --threads=32
 
-# High-performance scan
-python evyl.py -f targets.txt --threads 100 --timeout 5
+# Advanced scan with all optimizations
+python evyl.py run targets.txt --performance-mode=high --language=en --auto
+
+# Traditional mode (still supported)
+python evyl.py -f targets.txt -o results/ --all-modules --validate
 
 # Kubernetes-specific scan
 python evyl.py -t k8s-cluster.com --kubernetes
@@ -113,7 +136,16 @@ python evyl.py -t k8s-cluster.com --kubernetes
 python evyl.py -t ec2-instance.aws.com --aws --gcp --azure
 ```
 
-## 📋 Command Line Options
+## 📋 Command Line Options (v3.0)
+
+### New Quick Launch Command (Recommended)
+```bash
+# Run command with auto-configuration
+evyl run targets.txt                                    # Auto-detect optimal settings
+evyl run targets.txt --language=fr                      # French interface  
+evyl run targets.txt --performance-mode=high            # High performance mode
+evyl run targets.txt --threads=50 --telegram            # Custom threads + notifications
+```
 
 ### Target Options
 ```bash
